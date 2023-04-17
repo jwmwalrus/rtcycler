@@ -30,14 +30,6 @@ func Load(rt RTCycler) (args []string) {
 		args = parseArgs()
 	}
 
-	configFile = filepath.Join(configDir, configFilename)
-	if flagUseConfig != "" {
-		configFile = flagUseConfig
-		log.Info("Using provided config file instead")
-	}
-	log.Infof("Using config file: %s", configFile)
-	lockFile = filepath.Join(runtimeDir, lockFilename)
-
 	log.WithField("flagDaemonMode", flagDaemonMode).
 		Infof("Daemon mode allowed: %v", rt.WithDaemon)
 	if rt.WithDaemon && flagDaemonMode {
@@ -56,6 +48,16 @@ func Load(rt RTCycler) (args []string) {
 		runtimeDir,
 	)
 	onerror.Panic(err)
+
+	configFile = filepath.Join(configDir, configFilename)
+	if flagUseConfig != "" {
+		configFile = flagUseConfig
+		log.Info("Using provided config file instead")
+	}
+	log.Infof("Using config file: %s", configFile)
+
+	lockFile = filepath.Join(runtimeDir, lockFilename)
+	log.Infof("Using lock file: %s", lockFile)
 
 	var list []string
 	for i := range rt.CacheSubdirs {

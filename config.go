@@ -2,8 +2,10 @@ package rtc
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 
 	"github.com/jwmwalrus/onerror"
@@ -41,7 +43,7 @@ func loadConfig(c Config, path, lockFile string) (err error) {
 	log.WithField("path", path).
 		Info("Loading config")
 
-	if os.IsNotExist(err) {
+	if errors.Is(err, fs.ErrNotExist) {
 		if flagUseConfig != "" {
 			log.WithFields(log.Fields{
 				"--config": flagUseConfig,
@@ -54,15 +56,22 @@ func loadConfig(c Config, path, lockFile string) (err error) {
 		}
 	}
 
-	_, err = os.Stat(path)
-	if os.IsNotExist(err) {
-		c.SetFirstRun(true)
-		if err = saveConfig(c, path, lockFile); err != nil {
-			return
-		}
+	var lock lockfile.Lockfile
+	lock, err = lockfile.New(lockFile)
+	if err != nil {
+		return
 	}
 
-	// var jsonFile *os.File
+	if err = lock.TryLock(); err != nil {
+		return
+	}
+
+	defer func() {
+		if err := lock.Unlock(); err != nil {
+			fmt.Printf("Cannot unlock %q, reason: %v\n", lock, err)
+		}
+	}()
+
 	f, err := os.Open(path)
 	onerror.Panic(err)
 	defer f.Close()
