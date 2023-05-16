@@ -9,6 +9,10 @@ This project uses [semantic versions](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.2] 2023-04-16
+
+ Fix instance suffix for testing
+
 ## [0.1.1] 2023-04-16
 
  Fix runtime dir issue when in daemon mode
