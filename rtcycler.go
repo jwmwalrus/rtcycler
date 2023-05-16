@@ -5,7 +5,6 @@ import (
 	"path/filepath"
 
 	"github.com/adrg/xdg"
-	"github.com/jwmwalrus/bnp/ing2"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
@@ -61,7 +60,7 @@ func setEnv(rt *RTCycler) {
 		configFilename = rt.ConfigFilename
 	}
 
-	instanceSuffix, _ = ing2.GetRandomLetters(8)
+	InstanceSuffix()
 
 	// XDG-related
 	dataDir = filepath.Join(xdg.DataHome, appDirName)

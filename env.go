@@ -6,6 +6,7 @@ import (
 	"os"
 	"runtime"
 
+	"github.com/jwmwalrus/bnp/ing2"
 	"github.com/pborman/getopt/v2"
 	log "github.com/sirupsen/logrus"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -107,7 +108,12 @@ func FlagVerbose() bool { return flagVerbose }
 func InstanceConfig() Config { return conf }
 
 // InstanceSuffix suffix used for the running instance
-func InstanceSuffix() string { return instanceSuffix }
+func InstanceSuffix() string {
+	if instanceSuffix == "" {
+		instanceSuffix, _ = ing2.GetRandomLetters(8)
+	}
+	return instanceSuffix
+}
 
 // LockFilename returns the passed lock filename
 func LockFilename() string { return lockFilename }
