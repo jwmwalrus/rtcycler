@@ -9,7 +9,11 @@ This project uses [semantic versions](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-## [0.1.2] 2023-04-16
+## [0.2.0] 2023-05-16
+
+ Add ResetInstanceSuffix function
+
+## [0.1.2] 2023-05-15
 
  Fix instance suffix for testing
 
