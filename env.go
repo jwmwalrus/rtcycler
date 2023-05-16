@@ -124,6 +124,9 @@ func LogFilename() string { return logFilename }
 // OS returns the current OS
 func OS() string { return runtime.GOOS }
 
+// ResetInstanceSuffix clears the instanceSuffix value.
+func ResetInstanceSuffix() { instanceSuffix = "" }
+
 // RuntimeDir returns XDG's run (volatile) directory
 func RuntimeDir() string { return runtimeDir }
 
