@@ -9,9 +9,13 @@ This project uses [semantic versions](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.2.1] 2023-08-13
+
+Upgrade Go version
+
 ## [0.2.0] 2023-05-16
 
- Add ResetInstanceSuffix function
+Add ResetInstanceSuffix function
 
 ## [0.1.2] 2023-05-15
 
