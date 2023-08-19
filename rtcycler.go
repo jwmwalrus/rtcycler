@@ -26,8 +26,11 @@ type RTCycler struct {
 	// NoParseArgs if true, os.Args will not be parsed
 	NoParseArgs bool
 
+	// WithDotHome if true, use a single `dot` home dir instead of XDG
+	WithDotHome bool
+
 	// WithDaemon if true, the --daemon flag won't be ignored if
-	// passed as an argument
+	// passed as an argument. Overrides WithDotHome
 	WithDaemon bool
 
 	// CacheSubdirs list of cache subdirs to be created
@@ -63,9 +66,17 @@ func setEnv(rt *RTCycler) {
 	InstanceSuffix()
 
 	// XDG-related
-	dataDir = filepath.Join(xdg.DataHome, appDirName)
-	configDir = filepath.Join(xdg.ConfigHome, appDirName)
-	cacheDir = filepath.Join(xdg.CacheHome, appDirName)
+	if rt.WithDotHome {
+		dotHome := "." + appDirName
+		dataDir = filepath.Join(xdg.Home, dotHome)
+		configDir = filepath.Join(xdg.Home, dotHome)
+		cacheDir = filepath.Join(xdg.Home, dotHome)
+	} else {
+		dataDir = filepath.Join(xdg.DataHome, appDirName)
+		configDir = filepath.Join(xdg.ConfigHome, appDirName)
+		cacheDir = filepath.Join(xdg.CacheHome, appDirName)
+	}
+
 	runtimeDir = filepath.Join(xdg.RuntimeDir, appDirName)
 	daemonDir = filepath.Join(varBasePath, appDirName)
 
