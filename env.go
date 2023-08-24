@@ -1,15 +1,19 @@
 package rtc
 
 import (
-	"fmt"
 	"io"
+	"log/slog"
 	"os"
 	"runtime"
 
 	"github.com/jwmwalrus/bnp/ing2"
 	"github.com/pborman/getopt/v2"
-	log "github.com/sirupsen/logrus"
 	"gopkg.in/natefinch/lumberjack.v2"
+)
+
+const (
+	LevelTrace = slog.Level(-8)
+	LevelFatal = slog.Level(12)
 )
 
 var (
@@ -42,6 +46,26 @@ var (
 	logFile         *lumberjack.Logger
 	logFilename     = "app.log"
 	runtimeDir      string
+)
+
+var (
+	logger     = slog.Default()
+	logLevel   = &slog.LevelVar{}
+	logOptions = &slog.HandlerOptions{Level: logLevel, ReplaceAttr: replaceAttributes}
+
+	logLevelMap = map[string]slog.Level{
+		"TRACE":                  LevelTrace,
+		slog.LevelDebug.String(): slog.LevelDebug,
+		slog.LevelInfo.String():  slog.LevelInfo,
+		slog.LevelWarn.String():  slog.LevelWarn,
+		slog.LevelError.String(): slog.LevelError,
+		"FATAL":                  LevelFatal,
+	}
+
+	logLevelNames = map[slog.Leveler]string{
+		LevelTrace: "TRACE",
+		LevelFatal: "FATAL",
+	}
 )
 
 func init() {
@@ -92,8 +116,8 @@ func FlagDry() bool { return flagDry }
 // FlagEchoLogging returns the value of the --echo-logging flag
 func FlagEchoLogging() bool { return flagEchoLogging }
 
-// FlagLogLogLevel returns the value of the --log-level flag
-func FlagLogLogLevel() string { return flagLogLevel }
+// FlagLogLevel returns the value of the --log-level flag
+func FlagLogLevel() string { return flagLogLevel }
 
 // FlagTestMode returns the value of the --test-mode flag
 func FlagTestMode() bool { return flagTestMode }
@@ -103,6 +127,12 @@ func FlagUseConfig() string { return flagUseConfig }
 
 // FlagVerbose returns the value of the --verbose flag
 func FlagVerbose() bool { return flagVerbose }
+
+// LogLevel returns the current log level value
+func LogLevel() slog.Level { return logLevel.Level() }
+
+// SetLogLevel sets the log level value
+func SetLogLevel(l slog.Level) { logLevel.Set(l) }
 
 // InstanceConfig instance configuration
 func InstanceConfig() Config { return conf }
@@ -155,35 +185,9 @@ func parseArgs() (args []string) {
 
 	if flagEchoLogging {
 		mw := io.MultiWriter(os.Stderr, logFile)
-		log.SetOutput(mw)
+		logger = slog.New(slog.NewTextHandler(mw, logOptions))
+		slog.SetDefault(logger)
 	}
 
 	return
-}
-
-func resolveLogLevel() {
-	givenLogLevel := flagLogLevel
-
-	if givenLogLevel == "" {
-		if flagDebug {
-			flagLogLevel = "debug"
-		} else if flagTestMode {
-			flagLogLevel = "debug"
-		} else if flagVerbose {
-			flagLogLevel = "info"
-		} else {
-			flagLogLevel = "error"
-		}
-	} else {
-		if _, err := log.ParseLevel(givenLogLevel); err != nil {
-			fmt.Printf("Unsupported log level: %v\n", givenLogLevel)
-			flagLogLevel = "error"
-		} else {
-			flagLogLevel = givenLogLevel
-		}
-	}
-
-	level, _ := log.ParseLevel(flagLogLevel)
-	log.SetLevel(level)
-	log.SetReportCaller(flagLogLevel == "debug")
 }

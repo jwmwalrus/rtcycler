@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"io"
 	"io/fs"
+	"log/slog"
 	"os"
 
-	"github.com/jwmwalrus/onerror"
+	"github.com/jwmwalrus/bnp/onerror"
 	"github.com/nightlyone/lockfile"
-	log "github.com/sirupsen/logrus"
 )
 
 // Config defines the configuration interface
@@ -41,16 +41,13 @@ func SaveThisConfig(c Config, path string) (err error) {
 
 func loadConfig(c Config, path, lockFile string) (err error) {
 	_, err = os.Stat(path)
-	log.WithField("path", path).
-		Info("Loading config")
+	slog.Info("Loading config", "path", path)
 
 	if errors.Is(err, fs.ErrNotExist) {
 		if flagUseConfig != "" {
-			log.WithFields(log.Fields{
-				"--config": flagUseConfig,
-			}).Fatal("No user-provided configuration file was found")
+			Fatal("No user-provided configuration file was found", "flag-config", flagUseConfig)
 		}
-		log.Info(configFilename + " was not found. Generating one")
+		slog.Info("Configuration filename was not found. Generating one...", "filename", configFilename)
 		c.SetFirstRun(true)
 		if err = saveConfig(c, path, lockFile); err != nil {
 			return
@@ -74,7 +71,7 @@ func loadConfig(c Config, path, lockFile string) (err error) {
 	}()
 
 	f, err := os.Open(path)
-	onerror.Panic(err)
+	onerror.Fatal(err)
 	defer f.Close()
 
 	bv, _ := io.ReadAll(f)
@@ -90,8 +87,7 @@ func loadConfig(c Config, path, lockFile string) (err error) {
 
 func saveConfig(c Config, path, lockFile string) (err error) {
 	c.SetDefaults()
-	log.WithField("path", path).
-		Info("Saving config")
+	slog.Info("Saving config", "path", path)
 
 	var lock lockfile.Lockfile
 	lock, err = lockfile.New(lockFile)

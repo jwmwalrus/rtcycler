@@ -4,11 +4,9 @@ go 1.21
 
 require (
 	github.com/adrg/xdg v0.4.0
-	github.com/jwmwalrus/bnp v1.15.0
-	github.com/jwmwalrus/onerror v0.2.1
+	github.com/jwmwalrus/bnp v1.16.0
 	github.com/nightlyone/lockfile v1.0.0
 	github.com/pborman/getopt/v2 v2.1.0
-	github.com/sirupsen/logrus v1.9.3
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )
 

@@ -1,11 +1,11 @@
 package rtc
 
 import (
+	"log/slog"
 	"os"
 	"path/filepath"
 
 	"github.com/adrg/xdg"
-	log "github.com/sirupsen/logrus"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
 
@@ -92,7 +92,8 @@ func setEnv(rt *RTCycler) {
 		MaxAge:     30,    //days
 		Compress:   false, // disabled by default
 	}
-	log.SetOutput(logFile)
-	log.SetFormatter(&log.TextFormatter{})
-	log.SetLevel(log.ErrorLevel)
+
+	logLevel.Set(slog.LevelError)
+	logger = slog.New(slog.NewTextHandler(logFile, logOptions))
+	slog.SetDefault(logger)
 }

@@ -1,11 +1,11 @@
 package rtc
 
 import (
+	"log/slog"
 	"path/filepath"
 
 	"github.com/jwmwalrus/bnp/env"
-	"github.com/jwmwalrus/onerror"
-	log "github.com/sirupsen/logrus"
+	"github.com/jwmwalrus/bnp/onerror"
 )
 
 // Unloader defines a method to be called when unloading the application
@@ -30,11 +30,12 @@ func Load(rt RTCycler) (args []string) {
 		args = parseArgs()
 	}
 
-	log.WithField("flagDaemonMode", flagDaemonMode).
-		Infof("Daemon mode allowed: %v", rt.WithDaemon)
+	slog.With(
+		"flag-daemon-mode", flagDaemonMode,
+		"allow-daemon-mode", rt.WithDaemon,
+	).Info("Daemon mode status")
 	if rt.WithDaemon && flagDaemonMode {
-		log.WithField("daemonDir", daemonDir).
-			Info("Applying daemon mode")
+		slog.Info("Applying daemon mode", "daemon-dir", daemonDir)
 		cacheDir = daemonDir
 		configDir = daemonDir
 		dataDir = daemonDir
@@ -47,17 +48,17 @@ func Load(rt RTCycler) (args []string) {
 		dataDir,
 		runtimeDir,
 	)
-	onerror.Panic(err)
+	onerror.Fatal(err)
 
 	configFile = filepath.Join(configDir, configFilename)
 	if flagUseConfig != "" {
 		configFile = flagUseConfig
-		log.Info("Using provided config file instead")
+		slog.Info("Using provided config file instead")
 	}
-	log.Infof("Using config file: %s", configFile)
+	slog.Info("Using configuration file", "config-file", configFile)
 
 	lockFile = filepath.Join(runtimeDir, lockFilename)
-	log.Infof("Using lock file: %s", lockFile)
+	slog.Info("Using lock file", "lock-file", lockFile)
 
 	var list []string
 	for i := range rt.CacheSubdirs {
@@ -74,16 +75,15 @@ func Load(rt RTCycler) (args []string) {
 	}
 	if len(list) > 0 {
 		err = env.CreateTheseDirs(list)
-		onerror.Panic(err)
+		onerror.Fatal(err)
 	}
 
 	err = loadConfig(conf, configFile, lockFile)
-	onerror.Panic(err)
+	onerror.Fatal(err)
 
 	if flagUseConfig != "" {
 		configFile = filepath.Join(configDir, configFilename)
-		log.WithField("configFile", configFile).
-			Info("Restored config file to its default")
+		slog.Info("Restored configuration file to its default", "config-file", configFile)
 	}
 	return
 }
@@ -96,7 +96,7 @@ func RegisterUnloader(u *Unloader) {
 // Unload Cleans up server before exit.
 // Registered unloaders are invoked in reverse order of registration.
 func Unload() {
-	log.Info("Unloading application")
+	slog.Info("Unloading application")
 
 	if conf == nil {
 		return
@@ -110,7 +110,7 @@ func Unload() {
 	}
 
 	for i := len(unloadRegistry) - 1; i >= 0; i-- {
-		log.Infof("Calling unloader: %v", unloadRegistry[i].Description)
+		slog.Info("Calling unloader: %v", "unloader-descr", unloadRegistry[i].Description)
 		onerror.Log(unloadRegistry[i].Callback())
 	}
 }
