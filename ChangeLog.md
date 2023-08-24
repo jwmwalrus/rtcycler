@@ -9,6 +9,10 @@ This project uses [semantic versions](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.4.0] 2023-08-23
+
+Set Config's lockFile right after loading
+
 ## [0.3.0] 2023-08-18
 
 Add WithDotHome option
