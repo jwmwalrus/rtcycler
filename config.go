@@ -17,6 +17,7 @@ import (
 type Config interface {
 	GetFirstRun() bool
 	SetFirstRun(bool)
+	SetLockFile(lockfile.Lockfile)
 	SetDefaults()
 }
 
@@ -78,7 +79,12 @@ func loadConfig(c Config, path, lockFile string) (err error) {
 
 	bv, _ := io.ReadAll(f)
 
-	json.Unmarshal(bv, c)
+	err = json.Unmarshal(bv, c)
+	if err != nil {
+		return
+	}
+
+	c.SetLockFile(lock)
 	return
 }
 
