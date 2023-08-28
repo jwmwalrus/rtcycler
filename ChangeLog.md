@@ -9,6 +9,10 @@ This project uses [semantic versions](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.6.0] 2023-08-28
+
+Implement RuntimeLogger
+
 ## [0.5.0] 2023-08-24
 
 Rework logging in terms of slog
