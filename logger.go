@@ -7,20 +7,60 @@ import (
 	"strings"
 )
 
+type RuntimeLogger interface {
+	Trace(msg string, args ...any)
+	TraceContext(ctx context.Context, msg string, args ...any)
+	Fatal(msg string, args ...any)
+	FatalContext(ctx context.Context, msg string, args ...any)
+	With(a ...any) RuntimeLogger
+}
+
+func NewRuntimeLogger(l *slog.Logger) RuntimeLogger {
+	return &tflogger{l}
+}
+
+type tflogger struct {
+	*slog.Logger
+}
+
+func (t *tflogger) Trace(msg string, args ...any) {
+	t.Logger.Log(context.Background(), LevelTrace, msg, args...)
+}
+
+func (t *tflogger) TraceContext(ctx context.Context, msg string, args ...any) {
+	t.Logger.Log(ctx, LevelTrace, msg, args...)
+}
+
+func (t *tflogger) Fatal(msg string, args ...any) {
+	t.Logger.Log(context.Background(), LevelFatal, msg, args...)
+}
+
+func (t *tflogger) FatalContext(ctx context.Context, msg string, args ...any) {
+	t.Logger.Log(ctx, LevelFatal, msg, args...)
+}
+
+func (t *tflogger) With(a ...any) RuntimeLogger {
+	return &tflogger{t.Logger.With(a...)}
+}
+
 func Trace(msg string, args ...any) {
-	slog.Default().Log(context.Background(), LevelTrace, msg, args...)
+	NewRuntimeLogger(slog.Default()).Trace(msg, args...)
 }
 
 func TraceContext(ctx context.Context, msg string, args ...any) {
-	slog.Default().Log(ctx, LevelFatal, msg, args...)
+	NewRuntimeLogger(slog.Default()).TraceContext(ctx, msg, args...)
 }
 
 func Fatal(msg string, args ...any) {
-	slog.Default().Log(context.Background(), LevelFatal, msg, args...)
+	NewRuntimeLogger(slog.Default()).Fatal(msg, args...)
 }
 
 func FatalContext(ctx context.Context, msg string, args ...any) {
-	slog.Default().Log(ctx, LevelFatal, msg, args...)
+	NewRuntimeLogger(slog.Default()).FatalContext(ctx, msg, args...)
+}
+
+func With(a ...any) RuntimeLogger {
+	return &tflogger{slog.With(a...)}
 }
 
 func resolveLogLevel() {
