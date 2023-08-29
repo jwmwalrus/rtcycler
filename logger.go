@@ -49,13 +49,18 @@ func (t *tflogger) With(a ...any) RuntimeLogger {
 }
 
 func (t *tflogger) addRecord(ctx context.Context, level slog.Level, msg string, args ...any) {
+	handler := t.Logger.Handler()
+	if !handler.Enabled(ctx, level) {
+		return
+	}
+
 	if t.pc == 0 {
 		t.pc, _, _, _ = runtime.Caller(2)
 	}
 
 	r := slog.NewRecord(time.Now(), level, msg, t.pc)
 	r.Add(args...)
-	onerror.Log(t.Logger.Handler().Handle(ctx, r))
+	onerror.Log(handler.Handle(ctx, r))
 }
 
 func Trace(msg string, args ...any) {
