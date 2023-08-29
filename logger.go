@@ -4,7 +4,11 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"runtime"
 	"strings"
+	"time"
+
+	"github.com/jwmwalrus/bnp/onerror"
 )
 
 type RuntimeLogger interface {
@@ -16,51 +20,70 @@ type RuntimeLogger interface {
 }
 
 func NewRuntimeLogger(l *slog.Logger) RuntimeLogger {
-	return &tflogger{l}
+	return &tflogger{Logger: l}
 }
 
 type tflogger struct {
 	*slog.Logger
+	pc uintptr
 }
 
 func (t *tflogger) Trace(msg string, args ...any) {
-	t.Logger.Log(context.Background(), LevelTrace, msg, args...)
+	t.addRecord(context.Background(), LevelTrace, msg, args...)
 }
 
 func (t *tflogger) TraceContext(ctx context.Context, msg string, args ...any) {
-	t.Logger.Log(ctx, LevelTrace, msg, args...)
+	t.addRecord(ctx, LevelTrace, msg, args...)
 }
 
 func (t *tflogger) Fatal(msg string, args ...any) {
-	t.Logger.Log(context.Background(), LevelFatal, msg, args...)
+	t.addRecord(context.Background(), LevelFatal, msg, args...)
 }
 
 func (t *tflogger) FatalContext(ctx context.Context, msg string, args ...any) {
-	t.Logger.Log(ctx, LevelFatal, msg, args...)
+	t.addRecord(ctx, LevelFatal, msg, args...)
 }
 
 func (t *tflogger) With(a ...any) RuntimeLogger {
-	return &tflogger{t.Logger.With(a...)}
+	return &tflogger{Logger: t.Logger.With(a...)}
+}
+
+func (t *tflogger) addRecord(ctx context.Context, level slog.Level, msg string, args ...any) {
+	if t.pc == 0 {
+		t.pc, _, _, _ = runtime.Caller(2)
+	}
+
+	r := slog.NewRecord(time.Now(), level, msg, t.pc)
+	r.Add(args...)
+	onerror.Log(t.Logger.Handler().Handle(ctx, r))
 }
 
 func Trace(msg string, args ...any) {
-	NewRuntimeLogger(slog.Default()).Trace(msg, args...)
+	t := &tflogger{Logger: slog.Default()}
+	t.pc, _, _, _ = runtime.Caller(1)
+	t.Trace(msg, args...)
 }
 
 func TraceContext(ctx context.Context, msg string, args ...any) {
-	NewRuntimeLogger(slog.Default()).TraceContext(ctx, msg, args...)
+	t := &tflogger{Logger: slog.Default()}
+	t.pc, _, _, _ = runtime.Caller(1)
+	t.TraceContext(ctx, msg, args...)
 }
 
 func Fatal(msg string, args ...any) {
-	NewRuntimeLogger(slog.Default()).Fatal(msg, args...)
+	t := &tflogger{Logger: slog.Default()}
+	t.pc, _, _, _ = runtime.Caller(1)
+	t.Fatal(msg, args...)
 }
 
 func FatalContext(ctx context.Context, msg string, args ...any) {
-	NewRuntimeLogger(slog.Default()).FatalContext(ctx, msg, args...)
+	t := &tflogger{Logger: slog.Default()}
+	t.pc, _, _, _ = runtime.Caller(1)
+	t.FatalContext(ctx, msg, args...)
 }
 
 func With(a ...any) RuntimeLogger {
-	return &tflogger{slog.With(a...)}
+	return &tflogger{Logger: slog.With(a...)}
 }
 
 func resolveLogLevel() {
