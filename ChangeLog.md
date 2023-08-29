@@ -9,6 +9,10 @@ This project uses [semantic versions](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.6.2] 2023-08-29
+
+Fix logger's LogLevel issue
+
 ## [0.6.1] 2023-08-28
 
 Fix logger's reported source
