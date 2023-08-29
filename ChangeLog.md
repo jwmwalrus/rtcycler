@@ -9,6 +9,10 @@ This project uses [semantic versions](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.6.1] 2023-08-28
+
+Fix logger's reported source
+
 ## [0.6.0] 2023-08-28
 
 Implement RuntimeLogger
