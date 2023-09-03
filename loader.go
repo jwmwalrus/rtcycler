@@ -110,6 +110,10 @@ func Unload() {
 	}
 
 	for i := len(unloadRegistry) - 1; i >= 0; i-- {
+		if unloadRegistry[i].Callback == nil {
+			continue
+		}
+
 		slog.Info("Calling unloader: %v", "unloader-descr", unloadRegistry[i].Description)
 		onerror.Log(unloadRegistry[i].Callback())
 	}
