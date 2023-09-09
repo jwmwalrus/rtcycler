@@ -9,6 +9,10 @@ This project uses [semantic versions](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.6.4] 2023-09-09
+
+Adjust to bnp change
+
 ## [0.6.3] 2023-09-02
 
 Do not invoke dummy unloaders
