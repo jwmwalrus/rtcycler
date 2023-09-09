@@ -6,7 +6,7 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/jwmwalrus/bnp/ing2"
+	"github.com/jwmwalrus/bnp/chars"
 	"github.com/pborman/getopt/v2"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
@@ -140,7 +140,7 @@ func InstanceConfig() Config { return conf }
 // InstanceSuffix suffix used for the running instance
 func InstanceSuffix() string {
 	if instanceSuffix == "" {
-		instanceSuffix, _ = ing2.GetRandomLetters(8)
+		instanceSuffix, _ = chars.GetRandomLetters(8)
 	}
 	return instanceSuffix
 }
