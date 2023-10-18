@@ -9,6 +9,10 @@ This project uses [semantic versions](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.6.5] 2023-10-17
+
+Update dependencies
+
 ## [0.6.4] 2023-09-09
 
 Adjust to bnp change
