@@ -9,6 +9,22 @@ This project uses [semantic versions](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.7.0] 2024-02-01
+
+Granular changes
+
+### Added
+
+* `ConfigLocker` interface to make `SetLockFile`'s implementation optional
+* `ConfigResolver` interface to be invoked after loading the config
+
+### Modified
+
+* The `Load` function now uses functional options
+* The `Config` interface no longer requires `SetLockFile`
+
+### Removed
+
 ## [0.6.6] 2024-01-10
 
 Update dependencies
