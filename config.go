@@ -17,8 +17,17 @@ import (
 type Config interface {
 	GetFirstRun() bool
 	SetFirstRun(bool)
-	SetLockFile(lockfile.Lockfile)
 	SetDefaults()
+}
+
+// ConfigLocker defines the config-lockfile interface
+type ConfigLocker interface {
+	SetLockFile(lockfile.Lockfile)
+}
+
+// ConfigResolver defines the config-resolve interface
+type ConfigResolver interface {
+	Resolve()
 }
 
 // SaveConfig Saves application's instance configuration
@@ -27,7 +36,7 @@ func SaveConfig(path string) (err error) {
 		return fmt.Errorf("there's no instance config available")
 	}
 
-	return saveConfig(conf, path, lockFile)
+	return saveConfig(conf, path)
 }
 
 // SaveThisConfig Saves the given configuration
@@ -36,10 +45,19 @@ func SaveThisConfig(c Config, path string) (err error) {
 		return fmt.Errorf("configuration is empty, there's nothing to save")
 	}
 
-	return saveConfig(c, path, lockFile)
+	return saveConfig(c, path)
 }
 
-func loadConfig(c Config, path, lockFile string) (err error) {
+func checkConfigFileLock() (err error) {
+	if configFileLock != "" {
+		return
+	}
+
+	configFileLock, err = lockfile.New(lockFile)
+	return
+}
+
+func loadConfig(c Config, path string) (err error) {
 	_, err = os.Stat(path)
 	slog.Info("Loading config", "path", path)
 
@@ -49,24 +67,26 @@ func loadConfig(c Config, path, lockFile string) (err error) {
 		}
 		slog.Info("Configuration filename was not found. Generating one...", "filename", configFilename)
 		c.SetFirstRun(true)
-		if err = saveConfig(c, path, lockFile); err != nil {
+		if err = saveConfig(c, path); err != nil {
 			return
 		}
 	}
 
-	var lock lockfile.Lockfile
-	lock, err = lockfile.New(lockFile)
 	if err != nil {
 		return
 	}
 
-	if err = lock.TryLock(); err != nil {
+	if err = checkConfigFileLock(); err != nil {
+		return
+	}
+
+	if err = configFileLock.TryLock(); err != nil {
 		return
 	}
 
 	defer func() {
-		if err := lock.Unlock(); err != nil {
-			fmt.Printf("Cannot unlock %q, reason: %v\n", lock, err)
+		if err := configFileLock.Unlock(); err != nil {
+			fmt.Printf("Cannot unlock %q, reason: %v\n", configFileLock, err)
 		}
 	}()
 
@@ -81,27 +101,27 @@ func loadConfig(c Config, path, lockFile string) (err error) {
 		return
 	}
 
-	c.SetLockFile(lock)
+	if cl, ok := c.(ConfigLocker); ok {
+		cl.SetLockFile(configFileLock)
+	}
 	return
 }
 
-func saveConfig(c Config, path, lockFile string) (err error) {
+func saveConfig(c Config, path string) (err error) {
 	c.SetDefaults()
 	slog.Info("Saving config", "path", path)
 
-	var lock lockfile.Lockfile
-	lock, err = lockfile.New(lockFile)
-	if err != nil {
+	if err = checkConfigFileLock(); err != nil {
 		return
 	}
 
-	if err = lock.TryLock(); err != nil {
+	if err = configFileLock.TryLock(); err != nil {
 		return
 	}
 
 	defer func() {
-		if err := lock.Unlock(); err != nil {
-			fmt.Printf("Cannot unlock %q, reason: %v\n", lock, err)
+		if err := configFileLock.Unlock(); err != nil {
+			fmt.Printf("Cannot unlock %q, reason: %v\n", configFileLock, err)
 		}
 	}()
 

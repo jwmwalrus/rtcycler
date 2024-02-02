@@ -12,61 +12,115 @@ import (
 // RTCycler defines the parameters
 type RTCycler struct {
 	// AppDirName application's directory name (required)
-	AppDirName string
+	appDirName string
 
 	// Config application's configuration (required)
-	Config Config
+	config Config
 
 	// AppName application's name (default: app)
-	AppName string
+	appName string
 
 	// ConfigFilename configuration's filename (default: app.json)
-	ConfigFilename string
+	configFilename string
 
 	// NoParseArgs if true, os.Args will not be parsed
-	NoParseArgs bool
+	noParseArgs bool
 
 	// WithDotHome if true, use a single `dot` home dir instead of XDG
-	WithDotHome bool
+	dotHome bool
 
 	// WithDaemon if true, the --daemon flag won't be ignored if
 	// passed as an argument. Overrides WithDotHome
-	WithDaemon bool
+	daemon bool
 
 	// CacheSubdirs list of cache subdirs to be created
-	CacheSubdirs []string
+	cacheSubdirs []string
 	// ConfigSubdirs list of config subdirs to be created
-	ConfigSubdirs []string
+	configSubdirs []string
 	// DataSubdirs list of data subdirs to be created
-	DataSubdirs []string
+	dataSubdirs []string
 	// RuntimeSubdirs list of run subdirs to be created
-	RuntimeSubdirs []string
+	runtimeSubdirs []string
+}
+
+func WithAppName(s string) func(*RTCycler) {
+	return func(rt *RTCycler) {
+		rt.appName = s
+	}
+}
+
+func WithConfigFileName(s string) func(*RTCycler) {
+	return func(rt *RTCycler) {
+		rt.configFilename = s
+	}
+}
+
+func WithNoParseArgs() func(*RTCycler) {
+	return func(rt *RTCycler) {
+		rt.noParseArgs = true
+	}
+}
+
+func WithDotHome() func(*RTCycler) {
+	return func(rt *RTCycler) {
+		rt.dotHome = true
+	}
+}
+
+func WithDaemon() func(*RTCycler) {
+	return func(rt *RTCycler) {
+		rt.daemon = true
+	}
+}
+
+func WithCacheSubdirs(l []string) func(*RTCycler) {
+	return func(rt *RTCycler) {
+		rt.cacheSubdirs = l
+	}
+}
+
+func WithConfigSubdirs(l []string) func(*RTCycler) {
+	return func(rt *RTCycler) {
+		rt.configSubdirs = l
+	}
+}
+
+func WithDataSubdirs(l []string) func(*RTCycler) {
+	return func(rt *RTCycler) {
+		rt.dataSubdirs = l
+	}
+}
+
+func WithRuntimeSubdirs(l []string) func(*RTCycler) {
+	return func(rt *RTCycler) {
+		rt.runtimeSubdirs = l
+	}
 }
 
 func setEnv(rt *RTCycler) {
-	if rt.AppDirName == "" {
+	if rt.appDirName == "" {
 		panic("RTCycler.AppDirName is required")
 	}
 
-	if rt.Config == nil {
+	if rt.config == nil {
 		panic("RTCycler.Config is required")
 	}
 
-	appDirName = rt.AppDirName
-	conf = rt.Config
+	appDirName = rt.appDirName
+	conf = rt.config
 
-	if rt.AppName != "" {
-		appName = rt.AppName
+	if rt.appName != "" {
+		appName = rt.appName
 	}
 
-	if rt.ConfigFilename != "" {
-		configFilename = rt.ConfigFilename
+	if rt.configFilename != "" {
+		configFilename = rt.configFilename
 	}
 
 	InstanceSuffix()
 
 	// XDG-related
-	if rt.WithDotHome {
+	if rt.dotHome {
 		dotHome := "." + appDirName
 		dataDir = filepath.Join(xdg.Home, dotHome)
 		configDir = filepath.Join(xdg.Home, dotHome)

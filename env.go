@@ -7,6 +7,7 @@ import (
 	"runtime"
 
 	"github.com/jwmwalrus/bnp/chars"
+	"github.com/nightlyone/lockfile"
 	"github.com/pborman/getopt/v2"
 	"gopkg.in/natefinch/lumberjack.v2"
 )
@@ -28,6 +29,7 @@ var (
 	conf            Config
 	configDir       string
 	configFile      string
+	configFileLock  lockfile.Lockfile
 	configFilename  = "config.json"
 	daemonDir       string
 	dataDir         string

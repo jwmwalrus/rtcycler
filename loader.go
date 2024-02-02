@@ -23,18 +23,25 @@ var (
 )
 
 // Load Loads application's configuration
-func Load(rt RTCycler) (args []string) {
-	setEnv(&rt)
+func Load(c Config, appDirName string, options ...func(*RTCycler)) (args []string) {
+	rt := &RTCycler{
+		appDirName: appDirName,
+		config:     c,
+	}
+	for _, o := range options {
+		o(rt)
+	}
+	setEnv(rt)
 
-	if !rt.NoParseArgs {
+	if !rt.noParseArgs {
 		args = parseArgs()
 	}
 
 	slog.With(
 		"flag-daemon-mode", flagDaemonMode,
-		"allow-daemon-mode", rt.WithDaemon,
+		"allow-daemon-mode", rt.daemon,
 	).Info("Daemon mode status")
-	if rt.WithDaemon && flagDaemonMode {
+	if rt.daemon && flagDaemonMode {
 		slog.Info("Applying daemon mode", "daemon-dir", daemonDir)
 		cacheDir = daemonDir
 		configDir = daemonDir
@@ -61,29 +68,33 @@ func Load(rt RTCycler) (args []string) {
 	slog.Info("Using lock file", "lock-file", lockFile)
 
 	var list []string
-	for i := range rt.CacheSubdirs {
-		list = append(list, filepath.Join(cacheDir, rt.CacheSubdirs[i]))
+	for i := range rt.cacheSubdirs {
+		list = append(list, filepath.Join(cacheDir, rt.cacheSubdirs[i]))
 	}
-	for i := range rt.ConfigSubdirs {
-		list = append(list, filepath.Join(configDir, rt.ConfigSubdirs[i]))
+	for i := range rt.configSubdirs {
+		list = append(list, filepath.Join(configDir, rt.configSubdirs[i]))
 	}
-	for i := range rt.DataSubdirs {
-		list = append(list, filepath.Join(dataDir, rt.DataSubdirs[i]))
+	for i := range rt.dataSubdirs {
+		list = append(list, filepath.Join(dataDir, rt.dataSubdirs[i]))
 	}
-	for i := range rt.RuntimeSubdirs {
-		list = append(list, filepath.Join(runtimeDir, rt.RuntimeSubdirs[i]))
+	for i := range rt.runtimeSubdirs {
+		list = append(list, filepath.Join(runtimeDir, rt.runtimeSubdirs[i]))
 	}
 	if len(list) > 0 {
 		err = env.CreateTheseDirs(list)
 		onerror.Fatal(err)
 	}
 
-	err = loadConfig(conf, configFile, lockFile)
+	err = loadConfig(conf, configFile)
 	onerror.Fatal(err)
 
 	if flagUseConfig != "" {
 		configFile = filepath.Join(configDir, configFilename)
 		slog.Info("Restored configuration file to its default", "config-file", configFile)
+	}
+
+	if cr, ok := rt.config.(ConfigResolver); ok {
+		cr.Resolve()
 	}
 	return
 }
@@ -102,13 +113,6 @@ func Unload() {
 		return
 	}
 
-	if conf.GetFirstRun() {
-		conf.SetFirstRun(false)
-
-		err := saveConfig(conf, configFile, lockFile)
-		onerror.Log(err)
-	}
-
 	for i := len(unloadRegistry) - 1; i >= 0; i-- {
 		if unloadRegistry[i].Callback == nil {
 			continue
@@ -116,5 +120,12 @@ func Unload() {
 
 		slog.Info("Calling unloader: %v", "unloader-descr", unloadRegistry[i].Description)
 		onerror.Log(unloadRegistry[i].Callback())
+	}
+
+	if conf.GetFirstRun() {
+		conf.SetFirstRun(false)
+
+		err := saveConfig(conf, configFile)
+		onerror.Log(err)
 	}
 }
