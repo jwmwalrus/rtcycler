@@ -1,8 +1,8 @@
 module github.com/jwmwalrus/rtcycler
 
-go 1.23.0
+go 1.24.0
 
-toolchain go1.24.2
+toolchain go1.24.4
 
 require (
 	github.com/adrg/xdg v0.5.3
@@ -12,6 +12,6 @@ require (
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )
 
-require golang.org/x/sys v0.32.0 // indirect
+require golang.org/x/sys v0.39.0 // indirect
 
 // replace github.com/jwmwalrus/bnp => ../bnp
